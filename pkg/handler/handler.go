@@ -30,17 +30,21 @@ func (h *Handler) GetBooks(ctx *gin.Context) {
 	filterCondition := ctx.Request.URL.Query()
 	books, err := h.service.GetBooks(filterCondition)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, books)
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, books)
 }
 
 func (h *Handler) GetBookByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 	book, err := h.service.GetBookByID(id)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "book " + id + " not found"})
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, book)
@@ -48,37 +52,55 @@ func (h *Handler) GetBookByID(ctx *gin.Context) {
 
 func (h *Handler) CreateBook(ctx *gin.Context) {
 	var newBook restapi.Book
-	if err := ctx.BindJSON(&newBook); err != nil || !restapi.ValidateBook(newBook) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "can't create book"})
+	if err := ctx.BindJSON(&newBook); err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := restapi.ValidateBook(newBook); err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 	id, err := h.service.CreateBook(newBook)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "book named " + newBook.Name + " already exists"})
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	ctx.JSON(http.StatusCreated, gin.H{"message": "book " + strconv.Itoa(id) + " created"})
+	ctx.JSON(http.StatusCreated, map[string]interface{}{
+		"id": id,
+	})
 }
 
 func (h *Handler) DeleteBookByID(ctx *gin.Context) {
-	id := ctx.Param("id")
-	if err := h.service.DeleteBookByID(id); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "book " + id + " not found"})
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "book " + id + " is deleted"})
+	if err = h.service.DeleteBookByID(id); err != nil {
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, StatusResponse{"ok"})
 }
 
 func (h *Handler) UpdateBookByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 	var newBook restapi.Book
-	if err := ctx.BindJSON(&newBook); err != nil || !restapi.ValidateBook(newBook) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "can't update book"})
+	if err = ctx.BindJSON(&newBook); err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.service.UpdateBookByID(id, newBook); err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "book " + id + " not found"})
+	if err := restapi.ValidateBook(newBook); err != nil {
+		NewErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "book " + id + " updated"})
+	if err = h.service.UpdateBookByID(id, newBook); err != nil {
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, StatusResponse{"ok"})
 }

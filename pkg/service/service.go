@@ -7,10 +7,10 @@ import (
 
 type BooksManager interface {
 	GetBooks(filterCondition map[string][]string) ([]restapi.Book, error)
-	GetBookByID(id string) (restapi.Book, error)
+	GetBookByID(id int) (restapi.Book, error)
 	CreateBook(book restapi.Book) (int, error)
-	DeleteBookByID(id string) error
-	UpdateBookByID(id string, book restapi.Book) error
+	DeleteBookByID(id int) error
+	UpdateBookByID(id int, book restapi.Book) error
 }
 
 type BooksManagerService struct {
@@ -25,7 +25,7 @@ func (s *BooksManagerService) CreateBook(book restapi.Book) (int, error) {
 	return s.repo.CreateBook(book)
 }
 
-func (s *BooksManagerService) GetBookByID(id string) (restapi.Book, error) {
+func (s *BooksManagerService) GetBookByID(id int) (restapi.Book, error) {
 	return s.repo.GetBookByID(id)
 }
 
@@ -33,10 +33,10 @@ func (s *BooksManagerService) GetBooks(filterCondition map[string][]string) ([]r
 	return s.repo.GetBooks(filterCondition)
 }
 
-func (s *BooksManagerService) DeleteBookByID(id string) error {
+func (s *BooksManagerService) DeleteBookByID(id int) error {
 	return s.repo.DeleteBookByID(id)
 }
 
-func (s *BooksManagerService) UpdateBookByID(id string, book restapi.Book) error {
+func (s *BooksManagerService) UpdateBookByID(id int, book restapi.Book) error {
 	return s.repo.UpdateBookByID(id, book)
 }

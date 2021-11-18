@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  restapi:
+    build: ./
+    command: ./wait-for-postgres.sh db ./restapi
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    environment:
+      - db_password=postgres
+
+  db:
+    restart: always
+    image: postgres:alpine
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=books_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+
+volumes:
+  dbdata:
