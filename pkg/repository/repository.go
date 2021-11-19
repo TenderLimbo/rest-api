@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	restapi "github.com/TenderLimbo/rest-api"
 	"gorm.io/gorm"
 )
@@ -25,8 +26,8 @@ func (r *BooksManagerPostgres) GetBooks(filterCondition map[string][]string) ([]
 	var Books []restapi.Book
 	if len(filterCondition) == 0 {
 		r.db.Where("amount <> ?", 0).Find(&Books)
-	} else if val, exists := filterCondition["genre"]; exists && len(val) == 1 {
-		r.db.Where("amount <> ?", 0).Where("genre = ?", val).Find(&Books)
+	} else {
+		r.db.Where("amount <> ?", 0).Where("genre = ?", filterCondition["genre"]).Find(&Books)
 	}
 	return Books, nil
 }
@@ -47,23 +48,16 @@ func (r *BooksManagerPostgres) CreateBook(newBook restapi.Book) (int, error) {
 }
 
 func (r *BooksManagerPostgres) DeleteBookByID(id int) error {
-	if _, err := r.GetBookByID(id); err != nil {
-		return err
-	}
-	if err := r.db.Delete(&restapi.Book{}, id).Error; err != nil {
-		return err
+	if r.db.Delete(&restapi.Book{}, id).RowsAffected < 1 {
+		return errors.New("id not found")
 	}
 	return nil
 }
 
 func (r *BooksManagerPostgres) UpdateBookByID(id int, newBook restapi.Book) error {
-	book, err := r.GetBookByID(id)
-	if err != nil {
-		return err
-	}
-	err = r.db.Model(&book).Select("*").Omit("id").Updates(newBook).Error
-	if err != nil {
-		return err
+	res := r.db.Where("id = ?", id).Select("*").Omit("id").Updates(newBook)
+	if res.Error != nil || res.RowsAffected < 1 {
+		return errors.New("id not found")
 	}
 	return nil
 }

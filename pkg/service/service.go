@@ -5,6 +5,8 @@ import (
 	"github.com/TenderLimbo/rest-api/pkg/repository"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
 type BooksManager interface {
 	GetBooks(filterCondition map[string][]string) ([]restapi.Book, error)
 	GetBookByID(id int) (restapi.Book, error)
