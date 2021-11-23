@@ -1,8 +1,8 @@
-port: "8000"
+port: "8080"
 
 db:
   user: "postgres"
-  host: "localhost"
+  host: "db"
   port: "5432"
   dbname: "books_db"
   sslmode: "disable"

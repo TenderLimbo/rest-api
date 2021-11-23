@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("failed to init .env : %s", err.Error())
 	}
 
-	db, err := repository.NewPostgresDB(viper.GetStringMapString("db"), os.Getenv("db_password"))
+	db, err := repository.NewPostgresDB(viper.GetStringMapString("db"), os.Getenv("POSTGRES_PASSWORD"))
 	if err != nil {
 		log.Fatalf("failed to connect database : %s", err.Error())
 	}
