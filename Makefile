@@ -1,3 +1,5 @@
+include .env
+
 build:
 	docker-compose build restapi
 
