@@ -16,6 +16,8 @@ services:
     image: postgres:alpine
     volumes:
       - dbdata:/var/lib/postgresql/data
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./sql/fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
     environment:
       - POSTGRES_DB=books_db
       - POSTGRES_USER=postgres

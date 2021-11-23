@@ -4,7 +4,9 @@ import (
 	restapi "github.com/TenderLimbo/rest-api"
 	"github.com/TenderLimbo/rest-api/pkg/service"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
@@ -102,8 +104,13 @@ func (h *Handler) UpdateBookByID(ctx *gin.Context) {
 		return
 	}
 	if err = h.service.UpdateBookByID(id, newBook); err != nil {
-		NewErrorResponse(ctx, http.StatusInternalServerError, "id not found")
+		if reflect.TypeOf(err) == reflect.TypeOf(gorm.ErrRecordNotFound) {
+			NewErrorResponse(ctx, http.StatusInternalServerError, "id not found")
+		} else {
+			NewErrorResponse(ctx, http.StatusInternalServerError, "name isn't unique")
+		}
 		return
 	}
-	ctx.JSON(http.StatusOK, StatusResponse{"ok"})
+	newBook.ID = id
+	ctx.JSON(http.StatusOK, newBook)
 }

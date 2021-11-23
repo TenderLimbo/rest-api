@@ -7,6 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
+var Genres = []restapi.Genre{
+	{Name: "Adventure"},
+	{Name: "Classics"},
+	{Name: "Fantasy"},
+}
+
 func NewPostgresDB(config map[string]string, password string) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		config["host"], config["user"], password, config["dbname"], config["port"], config["sslmode"])
@@ -14,9 +20,6 @@ func NewPostgresDB(config map[string]string, password string) (*gorm.DB, error) 
 	if err != nil {
 		return nil, err
 	}
-	err = db.AutoMigrate(&restapi.Book{})
-	if err != nil {
-		return nil, err
-	}
+
 	return db, nil
 }

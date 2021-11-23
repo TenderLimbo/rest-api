@@ -41,7 +41,7 @@ func (r *BooksManagerPostgres) GetBookByID(id int) (restapi.Book, error) {
 }
 
 func (r *BooksManagerPostgres) CreateBook(newBook restapi.Book) (int, error) {
-	if err := r.db.Create(&newBook).Error; err != nil {
+	if err := r.db.Select("name", "price", "genre", "amount").Create(&newBook).Error; err != nil {
 		return newBook.ID, err
 	}
 	return newBook.ID, nil
@@ -56,8 +56,11 @@ func (r *BooksManagerPostgres) DeleteBookByID(id int) error {
 
 func (r *BooksManagerPostgres) UpdateBookByID(id int, newBook restapi.Book) error {
 	res := r.db.Where("id = ?", id).Select("*").Omit("id").Updates(newBook)
-	if res.Error != nil || res.RowsAffected < 1 {
-		return errors.New("id not found")
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected < 1 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

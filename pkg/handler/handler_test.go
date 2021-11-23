@@ -365,7 +365,7 @@ func TestHandler_UpdateBookByID(t *testing.T) {
 				r.EXPECT().UpdateBookByID(id, book).Return(nil)
 			},
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: `{"status":"ok"}`,
+			expectedResponseBody: `{"id":1,"name":"Book1","price":0,"genre":1,"amount":0}`,
 		},
 	}
 	for _, test := range tests {
