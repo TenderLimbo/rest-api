@@ -89,7 +89,7 @@ func (h *Handler) DeleteBookByID(ctx *gin.Context) {
 		NewErrorResponse(ctx, http.StatusInternalServerError, "id not found")
 		return
 	}
-	ctx.JSON(http.StatusOK, StatusResponse{"ok"})
+	ctx.JSON(http.StatusNoContent, StatusResponse{"ok"})
 }
 
 func (h *Handler) UpdateBookByID(ctx *gin.Context) {
