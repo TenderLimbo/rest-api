@@ -26,7 +26,7 @@ run tests
 ```
 make test
 ```
-linter
+golangci-lint
 ```
 make lint
 ```
