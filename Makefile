@@ -6,6 +6,9 @@ build:
 run:
 	docker-compose up restapi
 
+stop:
+	docker-compose stop
+
 migration-up:
 	 migrate -path ./migrations -database 'postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@0.0.0.0:5432/$(POSTGRES_DB)?sslmode=disable' up
 

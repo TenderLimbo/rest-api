@@ -17,6 +17,10 @@ you can also migration-down
 ```
 make migration-down
 ```
+stop all containers
+```
+make stop
+```
 ## In addition
 run tests
 ```
