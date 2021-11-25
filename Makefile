@@ -10,15 +10,15 @@ stop:
 	docker-compose stop
 
 migration-up:
-	 migrate -path ./migrations -database 'postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@0.0.0.0:5432/$(POSTGRES_DB)?sslmode=disable' up
-
+	docker run -v $(shell pwd)/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database 'postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@0.0.0.0:5432/$(POSTGRES_DB)?sslmode=disable' up
 migration-down:
-	migrate -path ./migrations -database 'postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@0.0.0.0:5432/$(POSTGRES_DB)?sslmode=disable' down
+	docker run -v $(shell pwd)/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database 'postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@0.0.0.0:5432/$(POSTGRES_DB)?sslmode=disable' down -all
 
 test:
-	go test -v ./...
+	docker exec app go test -v ./...
 
 lint:
-	golangci-lint run
+	docker exec app golangci-lint run
+
 
 
