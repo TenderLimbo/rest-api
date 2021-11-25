@@ -140,8 +140,8 @@ func TestHandler_DeleteBookByID(t *testing.T) {
 			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}) {
 				r.EXPECT().DeleteBookByID(id).Return(nil)
 			},
-			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: `{"status":"ok"}`,
+			expectedStatusCode:   http.StatusNoContent,
+			expectedResponseBody: ``,
 		},
 		{
 			name:    "Id not found",
