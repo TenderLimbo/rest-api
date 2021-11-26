@@ -4,9 +4,7 @@ import (
 	restapi "github.com/TenderLimbo/rest-api"
 	"github.com/TenderLimbo/rest-api/pkg/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
-	"reflect"
 	"strconv"
 )
 
@@ -36,7 +34,7 @@ func (h *Handler) GetBooks(ctx *gin.Context) {
 			return
 		}
 		genreID, err := strconv.Atoi(filterCondition.Get("genre"))
-		if err != nil || genreID < 1 || genreID > 4 {
+		if err != nil || genreID < 1 || genreID > 3 {
 			NewErrorResponse(ctx, http.StatusBadRequest, "invalid filter condition")
 			return
 		}
@@ -57,7 +55,7 @@ func (h *Handler) GetBookByID(ctx *gin.Context) {
 	}
 	book, err := h.service.GetBookByID(id)
 	if err != nil {
-		NewErrorResponse(ctx, http.StatusInternalServerError, "id not found")
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, book)
@@ -71,7 +69,7 @@ func (h *Handler) CreateBook(ctx *gin.Context) {
 	}
 	id, err := h.service.CreateBook(newBook)
 	if err != nil {
-		NewErrorResponse(ctx, http.StatusInternalServerError, "input book name isn't unique")
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusOK, map[string]interface{}{
@@ -86,7 +84,7 @@ func (h *Handler) DeleteBookByID(ctx *gin.Context) {
 		return
 	}
 	if err = h.service.DeleteBookByID(id); err != nil {
-		NewErrorResponse(ctx, http.StatusInternalServerError, "id not found")
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	ctx.JSON(http.StatusNoContent, StatusResponse{"ok"})
@@ -104,11 +102,7 @@ func (h *Handler) UpdateBookByID(ctx *gin.Context) {
 		return
 	}
 	if err = h.service.UpdateBookByID(id, newBook); err != nil {
-		if reflect.TypeOf(err) == reflect.TypeOf(gorm.ErrRecordNotFound) {
-			NewErrorResponse(ctx, http.StatusInternalServerError, "id not found")
-		} else {
-			NewErrorResponse(ctx, http.StatusInternalServerError, "name isn't unique")
-		}
+		NewErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 	newBook.ID = id

@@ -11,16 +11,25 @@ import (
 	"testing"
 )
 
-func MockDB() (BooksManagerPostgres, sqlmock.Sqlmock) {
-	db, mock, _ := sqlmock.New()
-	gormDB, _ := gorm.Open(postgres.New(postgres.Config{
+func MockDB() (BooksManagerPostgres, sqlmock.Sqlmock, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		return BooksManagerPostgres{db: nil}, nil, nil
+	}
+	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
 	}), &gorm.Config{})
-	return BooksManagerPostgres{db: gormDB}, mock
+	if err != nil {
+		return BooksManagerPostgres{db: nil}, nil, nil
+	}
+	return BooksManagerPostgres{db: gormDB}, mock, err
 }
 
 func TestBooksManagerPostgres_CreateBook(t *testing.T) {
-	repo, mock := MockDB()
+	repo, mock, err := MockDB()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
 	type mockBehavior func(mock sqlmock.Sqlmock, returnedId int, book restapi.Book)
 	tests := []struct {
 		name         string
@@ -82,7 +91,10 @@ func TestBooksManagerPostgres_CreateBook(t *testing.T) {
 }
 
 func TestBooksManagerPostgres_DeleteBookByID(t *testing.T) {
-	repo, mock := MockDB()
+	repo, mock, err := MockDB()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
 	type mockBehavior func(inputId int)
 	tests := []struct {
 		name         string
@@ -126,8 +138,10 @@ func TestBooksManagerPostgres_DeleteBookByID(t *testing.T) {
 }
 
 func TestBooksManagerPostgres_GetBooks(t *testing.T) {
-	repo, mock := MockDB()
-
+	repo, mock, err := MockDB()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
 	type mockBehavior func(filterCondition map[string][]string)
 	tests := []struct {
 		name            string
@@ -152,7 +166,7 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 			},
 		},
 		{
-			name:            "Filter",
+			name:            "Filter OK",
 			filterCondition: map[string][]string{"genre": {"1"}},
 			mockBehavior: func(filterCondition map[string][]string) {
 				genreId := filterCondition["genre"][0]
@@ -163,6 +177,16 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 			expectedBooks: []restapi.Book{
 				{Model: restapi.Model{ID: 1}, Name: "book1", Price: 3.7, Genre: 1, Amount: 1},
 			},
+		},
+		{
+			name:            "Filter returns empty array OK",
+			filterCondition: map[string][]string{"genre": {"1"}},
+			mockBehavior: func(filterCondition map[string][]string) {
+				genreId := filterCondition["genre"][0]
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT`)).WithArgs(0, genreId).
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price", "genre", "amount"}))
+			},
+			expectedBooks: []restapi.Book{},
 		},
 	}
 	for _, test := range tests {
@@ -181,7 +205,10 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 }
 
 func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
-	repo, mock := MockDB()
+	repo, mock, err := MockDB()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
 	type mockBehavior func(inputId int)
 	tests := []struct {
 		name         string
@@ -195,11 +222,11 @@ func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
 			mockBehavior: func(inputId int) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT`)).WithArgs(inputId).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price", "genre", "amount"}).
-						AddRow(restapi.Model{ID: 1}.ID, "book1", 1.11, 2, 9))
+						AddRow(restapi.Model{ID: inputId}.ID, "book1", 1.11, 2, 9))
 			},
 			inputId: 2,
 			expectedBook: restapi.Book{
-				Model:  restapi.Model{ID: 1},
+				Model:  restapi.Model{ID: 2},
 				Name:   "book1",
 				Price:  1.11,
 				Genre:  2,
@@ -231,7 +258,10 @@ func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
 }
 
 func TestBooksManagerPostgres_UpdateBookByID(t *testing.T) {
-	repo, mock := MockDB()
+	repo, mock, err := MockDB()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
 	type mockBehavior func(inputId int, inputBook restapi.Book)
 	tests := []struct {
 		name         string

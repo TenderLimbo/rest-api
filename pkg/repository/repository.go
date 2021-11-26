@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	restapi "github.com/TenderLimbo/rest-api"
 	"gorm.io/gorm"
 )
@@ -48,8 +47,12 @@ func (r *BooksManagerPostgres) CreateBook(newBook restapi.Book) (int, error) {
 }
 
 func (r *BooksManagerPostgres) DeleteBookByID(id int) error {
-	if r.db.Delete(&restapi.Book{}, id).RowsAffected < 1 {
-		return errors.New("id not found")
+	res := r.db.Delete(&restapi.Book{}, id)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected < 1 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

@@ -13,6 +13,5 @@ func NewPostgresDB(config map[string]string, password string) (*gorm.DB, error) 
 	if err != nil {
 		return nil, err
 	}
-
 	return db, nil
 }

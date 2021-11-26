@@ -57,23 +57,7 @@ func TestHandler_CreateBook(t *testing.T) {
 			expectedResponseBody: `{"error":"invalid input"}`,
 		},
 		{
-			name:      "Unique name",
-			inputBody: `{"name": "hello", "price": 67.88, "genre": 1, "amount": 7}`,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
-				Name:   "hello",
-				Price:  67.88,
-				Genre:  1,
-				Amount: 7,
-			},
-			mockBehavior: func(r *mock_service.MockBooksManager, book restapi.Book) {
-				r.EXPECT().CreateBook(book).Return(0, errors.New("input book name isn't unique"))
-			},
-			expectedStatusCode:   http.StatusInternalServerError,
-			expectedResponseBody: `{"error":"input book name isn't unique"}`,
-		},
-		{
-			name:      "Unique name",
+			name:      "Not unique name",
 			inputBody: `{"name": "hello", "price": 67.88, "genre": 1, "amount": 7}`,
 			inputBook: restapi.Book{
 				Model:  restapi.Model{},
@@ -92,7 +76,6 @@ func TestHandler_CreateBook(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			c := gomock.NewController(t)
 			defer c.Finish()
 
@@ -200,7 +183,7 @@ func TestHandler_GetBookByID(t *testing.T) {
 			inputId: 1,
 			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}) {
 				r.EXPECT().GetBookByID(id).Return(restapi.Book{
-					Model:  restapi.Model{},
+					Model:  restapi.Model{ID: 1},
 					Name:   "hello",
 					Price:  4.32,
 					Genre:  2,
@@ -208,7 +191,7 @@ func TestHandler_GetBookByID(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: `{"id":0,"name":"hello","price":4.32,"genre":2,"amount":9}`,
+			expectedResponseBody: `{"id":1,"name":"hello","price":4.32,"genre":2,"amount":9}`,
 		},
 		{
 			name:    "Id not found",
