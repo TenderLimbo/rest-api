@@ -15,10 +15,10 @@ migration-down:
 	docker run -v $(shell pwd)/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database 'postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@0.0.0.0:5432/$(POSTGRES_DB)?sslmode=disable' down -all
 
 test:
-	docker exec app go test -v ./...
+	go test -v ./...
 
 lint:
-	docker exec app golangci-lint run
+	golangci-lint run
 
 
 
