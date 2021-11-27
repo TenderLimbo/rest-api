@@ -14,15 +14,15 @@ import (
 func MockDB() (BooksManagerPostgres, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
-		return BooksManagerPostgres{db: nil}, nil, nil
+		return BooksManagerPostgres{db: nil}, nil, err
 	}
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
 	}), &gorm.Config{})
 	if err != nil {
-		return BooksManagerPostgres{db: nil}, nil, nil
+		return BooksManagerPostgres{db: nil}, nil, err
 	}
-	return BooksManagerPostgres{db: gormDB}, mock, err
+	return BooksManagerPostgres{db: gormDB}, mock, nil
 }
 
 func TestBooksManagerPostgres_CreateBook(t *testing.T) {
