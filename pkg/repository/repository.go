@@ -23,12 +23,13 @@ func NewRepository(db *gorm.DB) *BooksManagerPostgres {
 
 func (r *BooksManagerPostgres) GetBooks(filterCondition map[string][]string) ([]restapi.Book, error) {
 	var Books []restapi.Book
+	var err error
 	if len(filterCondition) == 0 {
-		r.db.Where("amount <> ?", 0).Find(&Books)
+		err = r.db.Where("amount <> ?", 0).Find(&Books).Error
 	} else {
-		r.db.Where("amount <> ?", 0).Where("genre = ?", filterCondition["genre"]).Find(&Books)
+		err = r.db.Where("amount <> ?", 0).Where("genre = ?", filterCondition["genre"]).Find(&Books).Error
 	}
-	return Books, nil
+	return Books, err
 }
 
 func (r *BooksManagerPostgres) GetBookByID(id int) (restapi.Book, error) {
@@ -40,7 +41,7 @@ func (r *BooksManagerPostgres) GetBookByID(id int) (restapi.Book, error) {
 }
 
 func (r *BooksManagerPostgres) CreateBook(newBook restapi.Book) (int, error) {
-	if err := r.db.Select("name", "price", "genre", "amount").Create(&newBook).Error; err != nil {
+	if err := r.db.Debug().Select("name", "price", "genre", "amount").Create(&newBook).Error; err != nil {
 		return newBook.ID, err
 	}
 	return newBook.ID, nil
