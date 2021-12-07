@@ -1,4 +1,4 @@
-package REST_API
+package models
 
 import (
 	"context"

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	restapi "github.com/TenderLimbo/rest-api"
+	"github.com/TenderLimbo/rest-api/models"
 	"github.com/TenderLimbo/rest-api/pkg/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -62,7 +62,7 @@ func (h *Handler) GetBookByID(ctx *gin.Context) {
 }
 
 func (h *Handler) CreateBook(ctx *gin.Context) {
-	var newBook restapi.Book
+	var newBook models.Book
 	if err := ctx.BindJSON(&newBook); err != nil {
 		NewErrorResponse(ctx, http.StatusBadRequest, "invalid input")
 		return
@@ -96,7 +96,7 @@ func (h *Handler) UpdateBookByID(ctx *gin.Context) {
 		NewErrorResponse(ctx, http.StatusBadRequest, "invalid id")
 		return
 	}
-	var newBook restapi.Book
+	var newBook models.Book
 	if err = ctx.BindJSON(&newBook); err != nil {
 		NewErrorResponse(ctx, http.StatusBadRequest, "invalid input")
 		return

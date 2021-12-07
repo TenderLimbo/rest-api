@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	restapi "github.com/TenderLimbo/rest-api"
-	handler "github.com/TenderLimbo/rest-api/pkg/handler"
+	"github.com/TenderLimbo/rest-api/models"
+	"github.com/TenderLimbo/rest-api/pkg/handler"
 	"github.com/TenderLimbo/rest-api/pkg/repository"
-	service "github.com/TenderLimbo/rest-api/pkg/service"
+	"github.com/TenderLimbo/rest-api/pkg/service"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"log"
@@ -38,7 +38,7 @@ func main() {
 	services := service.NewService(repo)
 	handlers := handler.NewHandler(services)
 
-	srv := new(restapi.Server)
+	srv := new(models.Server)
 	go func() {
 		if err = srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
 			log.Println("listen: ", err)

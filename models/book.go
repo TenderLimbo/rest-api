@@ -1,11 +1,7 @@
-package REST_API
-
-type Model struct {
-	ID int `json:"id"`
-}
+package models
 
 type Book struct {
-	Model
+	ID     int     `json:"id"`
 	Name   string  `json:"name" binding:"min=1,max=100"`
 	Price  float64 `json:"price" binding:"min=0"`
 	Genre  int     `json:"genre" binding:"min=1,max=3"`
@@ -13,6 +9,6 @@ type Book struct {
 }
 
 type Genre struct {
-	Model
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }

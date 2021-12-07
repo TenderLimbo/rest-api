@@ -1,16 +1,16 @@
 package repository
 
 import (
-	restapi "github.com/TenderLimbo/rest-api"
+	"github.com/TenderLimbo/rest-api/models"
 	"gorm.io/gorm"
 )
 
 type BooksManager interface {
-	GetBooks(filterCondition map[string][]string) ([]restapi.Book, error)
-	GetBookByID(id int) (restapi.Book, error)
-	CreateBook(book restapi.Book) (int, error)
+	GetBooks(filterCondition map[string][]string) ([]models.Book, error)
+	GetBookByID(id int) (models.Book, error)
+	CreateBook(book models.Book) (int, error)
 	DeleteBookByID(id int) error
-	UpdateBookByID(id int, book restapi.Book) error
+	UpdateBookByID(id int, book models.Book) error
 }
 
 type BooksManagerPostgres struct {
@@ -21,8 +21,8 @@ func NewRepository(db *gorm.DB) *BooksManagerPostgres {
 	return &BooksManagerPostgres{db: db}
 }
 
-func (r *BooksManagerPostgres) GetBooks(filterCondition map[string][]string) ([]restapi.Book, error) {
-	var Books []restapi.Book
+func (r *BooksManagerPostgres) GetBooks(filterCondition map[string][]string) ([]models.Book, error) {
+	var Books []models.Book
 	var err error
 	if len(filterCondition) == 0 {
 		err = r.db.Where("amount <> ?", 0).Find(&Books).Error
@@ -32,15 +32,15 @@ func (r *BooksManagerPostgres) GetBooks(filterCondition map[string][]string) ([]
 	return Books, err
 }
 
-func (r *BooksManagerPostgres) GetBookByID(id int) (restapi.Book, error) {
-	var book restapi.Book
+func (r *BooksManagerPostgres) GetBookByID(id int) (models.Book, error) {
+	var book models.Book
 	if err := r.db.First(&book, id).Error; err != nil {
 		return book, err
 	}
 	return book, nil
 }
 
-func (r *BooksManagerPostgres) CreateBook(newBook restapi.Book) (int, error) {
+func (r *BooksManagerPostgres) CreateBook(newBook models.Book) (int, error) {
 	if err := r.db.Debug().Select("name", "price", "genre", "amount").Create(&newBook).Error; err != nil {
 		return newBook.ID, err
 	}
@@ -48,7 +48,7 @@ func (r *BooksManagerPostgres) CreateBook(newBook restapi.Book) (int, error) {
 }
 
 func (r *BooksManagerPostgres) DeleteBookByID(id int) error {
-	res := r.db.Delete(&restapi.Book{}, id)
+	res := r.db.Delete(&models.Book{}, id)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -58,7 +58,7 @@ func (r *BooksManagerPostgres) DeleteBookByID(id int) error {
 	return nil
 }
 
-func (r *BooksManagerPostgres) UpdateBookByID(id int, newBook restapi.Book) error {
+func (r *BooksManagerPostgres) UpdateBookByID(id int, newBook models.Book) error {
 	res := r.db.Where("id = ?", id).Select("*").Omit("id").Updates(newBook)
 	if res.Error != nil {
 		return res.Error

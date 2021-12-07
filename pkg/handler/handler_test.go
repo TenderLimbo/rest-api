@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	restapi "github.com/TenderLimbo/rest-api"
+	"github.com/TenderLimbo/rest-api/models"
 	"github.com/TenderLimbo/rest-api/pkg/service"
 	mock_service "github.com/TenderLimbo/rest-api/pkg/service/mocks"
 	"github.com/gin-gonic/gin"
@@ -16,12 +16,12 @@ import (
 	"testing"
 )
 
-func TestHandler_CreateBook(t *testing.T) {
-	type mockBehavior func(s *mock_service.MockBooksManager, book restapi.Book)
+func TestCreateBook(t *testing.T) {
+	type mockBehavior func(s *mock_service.MockBooksManager, book models.Book)
 	tests := []struct {
 		name                 string
 		inputBody            string
-		inputBook            restapi.Book
+		inputBook            models.Book
 		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseBody string
@@ -29,14 +29,13 @@ func TestHandler_CreateBook(t *testing.T) {
 		{
 			name:      "Ok",
 			inputBody: `{"name": "Book1", "price": 0, "genre": 1, "amount": 0}`,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
+			inputBook: models.Book{
 				Name:   "Book1",
 				Price:  0,
 				Genre:  1,
 				Amount: 0,
 			},
-			mockBehavior: func(r *mock_service.MockBooksManager, book restapi.Book) {
+			mockBehavior: func(r *mock_service.MockBooksManager, book models.Book) {
 				r.EXPECT().CreateBook(book).Return(1, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
@@ -45,28 +44,27 @@ func TestHandler_CreateBook(t *testing.T) {
 		{
 			name:                 "Some fields missing",
 			inputBody:            `{"price": 67.88, "genre": 1, "amount": 5}`,
-			mockBehavior:         func(r *mock_service.MockBooksManager, book restapi.Book) {},
+			mockBehavior:         func(r *mock_service.MockBooksManager, book models.Book) {},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"error":"invalid input"}`,
 		},
 		{
 			name:                 "Invalid genre",
 			inputBody:            `{"name": "hello", "price": 67.88, "genre": 6, "amount": 7}`,
-			mockBehavior:         func(r *mock_service.MockBooksManager, book restapi.Book) {},
+			mockBehavior:         func(r *mock_service.MockBooksManager, book models.Book) {},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"error":"invalid input"}`,
 		},
 		{
 			name:      "Not unique name",
 			inputBody: `{"name": "hello", "price": 67.88, "genre": 1, "amount": 7}`,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
+			inputBook: models.Book{
 				Name:   "hello",
 				Price:  67.88,
 				Genre:  1,
 				Amount: 7,
 			},
-			mockBehavior: func(r *mock_service.MockBooksManager, book restapi.Book) {
+			mockBehavior: func(r *mock_service.MockBooksManager, book models.Book) {
 				r.EXPECT().CreateBook(book).Return(0, errors.New("input book name isn't unique"))
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
@@ -101,7 +99,7 @@ func TestHandler_CreateBook(t *testing.T) {
 
 }
 
-func TestHandler_DeleteBookByID(t *testing.T) {
+func TestDeleteBookByID(t *testing.T) {
 	type mockBehavior func(s *mock_service.MockBooksManager, id interface{})
 	tests := []struct {
 		name                 string
@@ -162,7 +160,7 @@ func TestHandler_DeleteBookByID(t *testing.T) {
 	}
 }
 
-func TestHandler_GetBookByID(t *testing.T) {
+func TestGetBookByID(t *testing.T) {
 	type mockBehavior func(s *mock_service.MockBooksManager, id interface{})
 	tests := []struct {
 		name                 string
@@ -182,8 +180,8 @@ func TestHandler_GetBookByID(t *testing.T) {
 			name:    "Id OK",
 			inputId: 1,
 			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}) {
-				r.EXPECT().GetBookByID(id).Return(restapi.Book{
-					Model:  restapi.Model{ID: 1},
+				r.EXPECT().GetBookByID(id).Return(models.Book{
+					ID:     1,
 					Name:   "hello",
 					Price:  4.32,
 					Genre:  2,
@@ -197,7 +195,7 @@ func TestHandler_GetBookByID(t *testing.T) {
 			name:    "Id not found",
 			inputId: 1,
 			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}) {
-				r.EXPECT().GetBookByID(id).Return(restapi.Book{}, errors.New("id not found"))
+				r.EXPECT().GetBookByID(id).Return(models.Book{}, errors.New("id not found"))
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
 			expectedResponseBody: `{"error":"id not found"}`,
@@ -230,7 +228,7 @@ func TestHandler_GetBookByID(t *testing.T) {
 	}
 }
 
-func TestHandler_GetBooks(t *testing.T) {
+func TestGetBooks(t *testing.T) {
 	type mockBehavior func(s *mock_service.MockBooksManager, filterCondition map[string][]string)
 	tests := []struct {
 		name                 string
@@ -257,7 +255,7 @@ func TestHandler_GetBooks(t *testing.T) {
 			name:            "Get All Ok",
 			filterCondition: map[string][]string{},
 			mockBehavior: func(r *mock_service.MockBooksManager, filterCondition map[string][]string) {
-				r.EXPECT().GetBooks(filterCondition).Return([]restapi.Book{}, nil)
+				r.EXPECT().GetBooks(filterCondition).Return([]models.Book{}, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
 			expectedResponseBody: `[]`,
@@ -290,13 +288,13 @@ func TestHandler_GetBooks(t *testing.T) {
 	}
 }
 
-func TestHandler_UpdateBookByID(t *testing.T) {
-	type mockBehavior func(s *mock_service.MockBooksManager, id interface{}, book restapi.Book)
+func TestUpdateBookByID(t *testing.T) {
+	type mockBehavior func(s *mock_service.MockBooksManager, id interface{}, book models.Book)
 	tests := []struct {
 		name                 string
 		inputBody            string
 		inputId              interface{}
-		inputBook            restapi.Book
+		inputBook            models.Book
 		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseBody string
@@ -304,7 +302,7 @@ func TestHandler_UpdateBookByID(t *testing.T) {
 		{
 			name:                 "Update invalid id",
 			inputId:              78.99,
-			mockBehavior:         func(r *mock_service.MockBooksManager, id interface{}, book restapi.Book) {},
+			mockBehavior:         func(r *mock_service.MockBooksManager, id interface{}, book models.Book) {},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"error":"invalid id"}`,
 		},
@@ -312,7 +310,7 @@ func TestHandler_UpdateBookByID(t *testing.T) {
 			name:                 "Update invalid input",
 			inputId:              1,
 			inputBody:            `{"name": "Book1", "price": -78, "genre": 1, "amount": 0}`,
-			mockBehavior:         func(r *mock_service.MockBooksManager, id interface{}, book restapi.Book) {},
+			mockBehavior:         func(r *mock_service.MockBooksManager, id interface{}, book models.Book) {},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"error":"invalid input"}`,
 		},
@@ -320,14 +318,13 @@ func TestHandler_UpdateBookByID(t *testing.T) {
 			name:      "Update id not found",
 			inputId:   1,
 			inputBody: `{"name": "Book1", "price": 0, "genre": 1, "amount": 0}`,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
+			inputBook: models.Book{
 				Name:   "Book1",
 				Price:  0,
 				Genre:  1,
 				Amount: 0,
 			},
-			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}, book restapi.Book) {
+			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}, book models.Book) {
 				r.EXPECT().UpdateBookByID(id, book).Return(errors.New("id not found"))
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
@@ -337,14 +334,13 @@ func TestHandler_UpdateBookByID(t *testing.T) {
 			name:      "Update ok",
 			inputId:   1,
 			inputBody: `{"name": "Book1", "price": 0, "genre": 1, "amount": 0}`,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
+			inputBook: models.Book{
 				Name:   "Book1",
 				Price:  0,
 				Genre:  1,
 				Amount: 0,
 			},
-			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}, book restapi.Book) {
+			mockBehavior: func(r *mock_service.MockBooksManager, id interface{}, book models.Book) {
 				r.EXPECT().UpdateBookByID(id, book).Return(nil)
 			},
 			expectedStatusCode:   http.StatusOK,

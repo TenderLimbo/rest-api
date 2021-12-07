@@ -5,9 +5,9 @@
 package mock_service
 
 import (
+	models "github.com/TenderLimbo/rest-api/models"
 	reflect "reflect"
 
-	rest_api "github.com/TenderLimbo/rest-api"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,7 +35,7 @@ func (m *MockBooksManager) EXPECT() *MockBooksManagerMockRecorder {
 }
 
 // CreateBook mocks base method.
-func (m *MockBooksManager) CreateBook(book rest_api.Book) (int, error) {
+func (m *MockBooksManager) CreateBook(book models.Book) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateBook", book)
 	ret0, _ := ret[0].(int)
@@ -64,10 +64,10 @@ func (mr *MockBooksManagerMockRecorder) DeleteBookByID(id interface{}) *gomock.C
 }
 
 // GetBookByID mocks base method.
-func (m *MockBooksManager) GetBookByID(id int) (rest_api.Book, error) {
+func (m *MockBooksManager) GetBookByID(id int) (models.Book, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBookByID", id)
-	ret0, _ := ret[0].(rest_api.Book)
+	ret0, _ := ret[0].(models.Book)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,10 +79,10 @@ func (mr *MockBooksManagerMockRecorder) GetBookByID(id interface{}) *gomock.Call
 }
 
 // GetBooks mocks base method.
-func (m *MockBooksManager) GetBooks(filterCondition map[string][]string) ([]rest_api.Book, error) {
+func (m *MockBooksManager) GetBooks(filterCondition map[string][]string) ([]models.Book, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBooks", filterCondition)
-	ret0, _ := ret[0].([]rest_api.Book)
+	ret0, _ := ret[0].([]models.Book)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -94,7 +94,7 @@ func (mr *MockBooksManagerMockRecorder) GetBooks(filterCondition interface{}) *g
 }
 
 // UpdateBookByID mocks base method.
-func (m *MockBooksManager) UpdateBookByID(id int, book rest_api.Book) error {
+func (m *MockBooksManager) UpdateBookByID(id int, book models.Book) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateBookByID", id, book)
 	ret0, _ := ret[0].(error)

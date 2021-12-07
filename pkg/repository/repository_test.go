@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
-	restapi "github.com/TenderLimbo/rest-api"
+	"github.com/TenderLimbo/rest-api/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,30 +25,29 @@ func MockDB() (BooksManagerPostgres, sqlmock.Sqlmock, error) {
 	return BooksManagerPostgres{db: gormDB}, mock, nil
 }
 
-func TestBooksManagerPostgres_CreateBook(t *testing.T) {
+func TestCreateBook(t *testing.T) {
 	repo, mock, err := MockDB()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	type mockBehavior func(mock sqlmock.Sqlmock, returnedId int, book restapi.Book)
+	type mockBehavior func(mock sqlmock.Sqlmock, returnedId int, book models.Book)
 	tests := []struct {
 		name         string
-		inputBook    restapi.Book
+		inputBook    models.Book
 		returnedId   int
 		mockBehavior mockBehavior
 		expectError  bool
 	}{
 		{
 			name: "Ok",
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
+			inputBook: models.Book{
 				Name:   "hello",
 				Price:  45.99,
 				Genre:  1,
 				Amount: 8,
 			},
 			returnedId: 1,
-			mockBehavior: func(mock sqlmock.Sqlmock, returnedId int, book restapi.Book) {
+			mockBehavior: func(mock sqlmock.Sqlmock, returnedId int, book models.Book) {
 				mock.ExpectBegin()
 				mock.ExpectQuery("INSERT INTO \"books\"").
 					WithArgs(book.Name, book.Price, book.Genre, book.Amount).
@@ -58,14 +57,13 @@ func TestBooksManagerPostgres_CreateBook(t *testing.T) {
 		},
 		{
 			name: "Empty field",
-			inputBook: restapi.Book{
-				Model:  restapi.Model{},
+			inputBook: models.Book{
 				Name:   "",
 				Price:  45.99,
 				Genre:  1,
 				Amount: 8,
 			},
-			mockBehavior: func(mock sqlmock.Sqlmock, returnedId int, book restapi.Book) {
+			mockBehavior: func(mock sqlmock.Sqlmock, returnedId int, book models.Book) {
 				mock.ExpectBegin()
 				mock.ExpectQuery("INSERT INTO \"books\"").
 					WithArgs(book.Name, book.Price, book.Genre, book.Amount).
@@ -90,7 +88,7 @@ func TestBooksManagerPostgres_CreateBook(t *testing.T) {
 	}
 }
 
-func TestBooksManagerPostgres_DeleteBookByID(t *testing.T) {
+func TestDeleteBookByID(t *testing.T) {
 	repo, mock, err := MockDB()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -137,7 +135,7 @@ func TestBooksManagerPostgres_DeleteBookByID(t *testing.T) {
 	}
 }
 
-func TestBooksManagerPostgres_GetBooks(t *testing.T) {
+func TestGetBooks(t *testing.T) {
 	repo, mock, err := MockDB()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -147,7 +145,7 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 		name            string
 		mockBehavior    mockBehavior
 		filterCondition map[string][]string
-		expectedBooks   []restapi.Book
+		expectedBooks   []models.Book
 		expectError     bool
 	}{
 		{
@@ -155,14 +153,14 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 			mockBehavior: func(filterCondition map[string][]string) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT`)).WithArgs(0).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price", "genre", "amount"}).
-						AddRow(restapi.Model{ID: 1}.ID, "book1", 3.7, 1, 1).
-						AddRow(restapi.Model{ID: 2}.ID, "book2", 4.7, 2, 2).
-						AddRow(restapi.Model{ID: 3}.ID, "book3", 5.7, 3, 3))
+						AddRow(1, "book1", 3.7, 1, 1).
+						AddRow(2, "book2", 4.7, 2, 2).
+						AddRow(3, "book3", 5.7, 3, 3))
 			},
-			expectedBooks: []restapi.Book{
-				{Model: restapi.Model{ID: 1}, Name: "book1", Price: 3.7, Genre: 1, Amount: 1},
-				{Model: restapi.Model{ID: 2}, Name: "book2", Price: 4.7, Genre: 2, Amount: 2},
-				{Model: restapi.Model{ID: 3}, Name: "book3", Price: 5.7, Genre: 3, Amount: 3},
+			expectedBooks: []models.Book{
+				{ID: 1, Name: "book1", Price: 3.7, Genre: 1, Amount: 1},
+				{ID: 2, Name: "book2", Price: 4.7, Genre: 2, Amount: 2},
+				{ID: 3, Name: "book3", Price: 5.7, Genre: 3, Amount: 3},
 			},
 		},
 		{
@@ -172,10 +170,10 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 				genreId := filterCondition["genre"][0]
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT`)).WithArgs(0, genreId).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price", "genre", "amount"}).
-						AddRow(restapi.Model{ID: 1}.ID, "book1", 3.7, 1, 1))
+						AddRow(1, "book1", 3.7, 1, 1))
 			},
-			expectedBooks: []restapi.Book{
-				{Model: restapi.Model{ID: 1}, Name: "book1", Price: 3.7, Genre: 1, Amount: 1},
+			expectedBooks: []models.Book{
+				{ID: 1, Name: "book1", Price: 3.7, Genre: 1, Amount: 1},
 			},
 		},
 		{
@@ -186,7 +184,7 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT`)).WithArgs(0, genreId).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price", "genre", "amount"}))
 			},
-			expectedBooks: []restapi.Book{},
+			expectedBooks: []models.Book{},
 		},
 	}
 	for _, test := range tests {
@@ -204,7 +202,7 @@ func TestBooksManagerPostgres_GetBooks(t *testing.T) {
 	}
 }
 
-func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
+func TestGetBookByID(t *testing.T) {
 	repo, mock, err := MockDB()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -214,7 +212,7 @@ func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
 		name         string
 		mockBehavior mockBehavior
 		inputId      int
-		expectedBook restapi.Book
+		expectedBook models.Book
 		expectError  bool
 	}{
 		{
@@ -222,11 +220,11 @@ func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
 			mockBehavior: func(inputId int) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT`)).WithArgs(inputId).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price", "genre", "amount"}).
-						AddRow(restapi.Model{ID: inputId}.ID, "book1", 1.11, 2, 9))
+						AddRow(inputId, "book1", 1.11, 2, 9))
 			},
 			inputId: 2,
-			expectedBook: restapi.Book{
-				Model:  restapi.Model{ID: 2},
+			expectedBook: models.Book{
+				ID:     2,
 				Name:   "book1",
 				Price:  1.11,
 				Genre:  2,
@@ -257,22 +255,22 @@ func TestBooksManagerPostgres_GetBookByID(t *testing.T) {
 	}
 }
 
-func TestBooksManagerPostgres_UpdateBookByID(t *testing.T) {
+func TestUpdateBookByID(t *testing.T) {
 	repo, mock, err := MockDB()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	type mockBehavior func(inputId int, inputBook restapi.Book)
+	type mockBehavior func(inputId int, inputBook models.Book)
 	tests := []struct {
 		name         string
 		mockBehavior mockBehavior
 		inputId      int
-		inputBook    restapi.Book
+		inputBook    models.Book
 		expectError  bool
 	}{
 		{
 			name: "Ok",
-			mockBehavior: func(inputId int, inputBook restapi.Book) {
+			mockBehavior: func(inputId int, inputBook models.Book) {
 				mock.ExpectBegin()
 				mock.ExpectExec(regexp.QuoteMeta(`UPDATE`)).
 					WithArgs(inputBook.Name, inputBook.Price, inputBook.Genre, inputBook.Amount, inputId, inputId).
@@ -280,8 +278,8 @@ func TestBooksManagerPostgres_UpdateBookByID(t *testing.T) {
 				mock.ExpectCommit()
 			},
 			inputId: 1,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{ID: 1},
+			inputBook: models.Book{
+				ID:     1,
 				Name:   "book1",
 				Price:  1.11,
 				Genre:  2,
@@ -290,7 +288,7 @@ func TestBooksManagerPostgres_UpdateBookByID(t *testing.T) {
 		},
 		{
 			name: "id not found",
-			mockBehavior: func(inputId int, inputBook restapi.Book) {
+			mockBehavior: func(inputId int, inputBook models.Book) {
 				mock.ExpectBegin()
 				mock.ExpectExec(regexp.QuoteMeta(`UPDATE`)).
 					WithArgs(inputBook.Name, inputBook.Price, inputBook.Genre, inputBook.Amount, inputId, inputId).
@@ -298,8 +296,8 @@ func TestBooksManagerPostgres_UpdateBookByID(t *testing.T) {
 				mock.ExpectRollback()
 			},
 			inputId: 1,
-			inputBook: restapi.Book{
-				Model:  restapi.Model{ID: 1},
+			inputBook: models.Book{
+				ID:     1,
 				Name:   "book1",
 				Price:  1.11,
 				Genre:  2,
